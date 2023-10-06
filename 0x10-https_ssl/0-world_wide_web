@@ -1,12 +1,5 @@
 #!/usr/bin/env bash
 
-# Subdomain configurations
-declare -A subdomains
-subdomains["www"]="3.83.192.251"
-subdomains["lb-01"]="18.205.38.219"
-subdomains["web-01"]="34.138.16.188"
-subdomains["web-02"]="34.138.16.188"
-
 # Function to query DNS and display information
 runDig() {
     subdomain="$1"
@@ -20,6 +13,19 @@ runDig() {
         echo "The subdomain $subdomain is a $record_type record and points to $result"
     fi
 }
+
+# Check if the configuration file exists
+config_file="subdomains.cfg"
+if [ ! -f "$config_file" ]; then
+    echo "Configuration file '$config_file' not found. Please create it."
+    exit 1
+fi
+
+# Read subdomain configurations from the configuration file
+declare -A subdomains
+while read -r subdomain ip; do
+    subdomains["$subdomain"]=$ip
+done < "$config_file"
 
 # Check the number of arguments provided
 if [ $# -eq 1 ]; then
