@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Usage: ./1-world_wide_web <domain> <subdomain>
 # Display information about subdomains.
-# www -> 251094-lb-01 52.91.118.207
-# web-01 -> 251094-web-01 52.3.252.80
-# web-02 -> 251094-web-02 54.172.95.62
+# www --> 251094-lb-01 52.91.118.207
+# web-01 --> 251094-web-01 52.3.252.80
+# web-02 --> 251094-web-02 54.172.95.62
 
 domain_information () {
     line=$(dig "$2"."$1" | grep -A1 'ANSWER SECTION:' | tr '\t' '\n' | tail -2 | tr '\n' ' ')
