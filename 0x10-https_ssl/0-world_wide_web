@@ -1,45 +1,41 @@
 #!/usr/bin/env bash
-# Usage: ./1-world_wide_web <domain> <subdomain>
-# Display information about subdomains.
-# www --> 251094-lb-01 52.91.118.207
-# web-01 --> 251094-web-01 52.3.252.80
-# web-02 --> 251094-web-02 54.172.95.62
 
-# -- To be evaluated --
-# domain_information () {
-#     line=$(dig "$2"."$1" | grep -A1 'ANSWER SECTION:' | tr '\t' '\n' | tail -2 | tr '\n' ' ')
-#     echo "$2 $line" | awk '{print "The subdomain " $1 " is a " $2 " record and points to " $3}'
-# }
+# Subdomain configurations
+declare -A subdomains
+subdomains["www"]="3.83.192.251"
+subdomains["lb-01"]="18.205.38.219"
+subdomains["web-01"]="34.138.16.188"
+subdomains["web-02"]="34.138.16.188"
 
-# if [ "$#" == 1 ]
-# then
-#   domain_information "$1" "www"
-#   domain_information "$1" "lb-01"
-#   domain_information "$1" "web-01"
-#   domain_information "$1" "web-02"
-# elif [ "$#" == 2 ]
-# then
-#   domain_information "$1" "$2"
-# fi
-#-- To be evaluated --
+# Function to query DNS and display information
+runDig() {
+    subdomain="$1"
+    domain="$2"
 
-subdomains_all=( "www" "lb-01" "web-01" "web-02" )
-
-runDig () {
-    subdomain=$1
-    domain=$2
-
-    dig "$subdomain.$domain" | grep -A1 'ANSWER SECTION:' | tail -1 | awk -v s="$subdomain" 'BEGIN { FS = " " } ; { print "The subdomain " s " is a " $4 " record and points to " $5 }'
+    result=$(dig +short "$subdomain.$domain")
+    if [ -z "$result" ]; then
+        echo "The subdomain $subdomain does not exist for $domain."
+    else
+        record_type=$(dig +short "$subdomain.$domain" | awk '{print $2}')
+        echo "The subdomain $subdomain is a $record_type record and points to $result"
+    fi
 }
 
+# Check the number of arguments provided
 if [ $# -eq 1 ]; then
     domain="$1"
-    for i in "${subdomains_all[@]}"
-    do
-	runDig "$i" "$domain"
+    for subdomain in "${!subdomains[@]}"; do
+        runDig "$subdomain" "$domain"
     done
 elif [ $# -eq 2 ]; then
     domain="$1"
     subdomain="$2"
-    runDig "$subdomain" "$domain"
+    if [ -n "${subdomains[$subdomain]}" ]; then
+        runDig "$subdomain" "$domain"
+    else
+        echo "The subdomain $subdomain is not configured for $domain."
+    fi
+else
+    echo "Usage: $0 <domain> [subdomain]"
+    exit 1
 fi
